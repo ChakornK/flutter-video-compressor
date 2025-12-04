@@ -18,22 +18,42 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
     encoding = 'libx265';
     logMessage('Using software encoding\n');
   }
-  encoding = 'libx265';
   logMessage("\n");
 
   FFmpegKitConfig.selectDocumentForWrite('compressed-${DateTime.now().millisecondsSinceEpoch}.mp4', 'video/*')
       .then((uri) {
         FFmpegKitConfig.getSafParameterForWrite(uri!).then((safUrl) async {
-          final num duration = await FFprobeKit.getMediaInformationFromCommand(
-            '-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $inputFile',
-          ).then((info) async => num.parse((await info.getOutput())!));
+          final List<String> info = (await FFprobeKit.getMediaInformationFromCommand(
+            '-v error -show_entries format=duration:stream=width,height -of default=noprint_wrappers=1:nokey=1 $inputFile',
+          ).then((info) async => (await info.getOutput())!)).toString().split("\n");
+          final int width = int.parse(info[0]);
+          final int height = int.parse(info[1]);
+          final num duration = num.parse(info[2]);
 
           final num target = size * 1024 * 1024;
           final num totalBitrate = target / duration;
           final num audioBitrate = min(96 * 1000, 0.2 * totalBitrate);
           final num videoBitrate = totalBitrate - audioBitrate;
 
-          final args = ["-b:v $videoBitrate", "-maxrate:v $videoBitrate", "-bufsize:v ${target / 20}", "-b:a $audioBitrate", "-c:v $encoding"];
+          final args = [
+            "-b:v $videoBitrate",
+            "-maxrate:v $videoBitrate",
+            "-bufsize:v ${target / 20}",
+            "-b:a $audioBitrate",
+            "-c:v $encoding",
+            "-c:a aac",
+            "-crf 50",
+            "-ar 44100",
+            "-color_trc iec61966-2-1",
+          ];
+
+          if (max(width, height) > 1280) {
+            if (width > height) {
+              args.add("-vf scale=1280:-1");
+            } else {
+              args.add("-vf scale=-1:1280");
+            }
+          }
 
           FFmpegKit.executeAsync(
             "-i $inputFile ${args.join(" ")} $safUrl",
