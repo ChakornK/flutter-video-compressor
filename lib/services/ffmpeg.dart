@@ -39,7 +39,7 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
           final args = [
             "-b:v ${videoBitrate.floor()}",
             "-maxrate:v ${videoBitrate.floor()}",
-            "-bufsize:v ${target / 20}",
+            "-bufsize:v ${target / 2}",
             "-b:a ${audioBitrate.floor()}",
             "-c:v $encoding",
             "-c:a aac",
