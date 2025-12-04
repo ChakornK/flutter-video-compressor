@@ -24,11 +24,12 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
       .then((uri) {
         FFmpegKitConfig.getSafParameterForWrite(uri!).then((safUrl) async {
           final List<String> info = (await FFprobeKit.getMediaInformationFromCommand(
-            '-v error -show_entries format=duration:stream=width,height -of default=noprint_wrappers=1:nokey=1 $inputFile',
+            '-v error -show_entries format=duration:stream=width,height,r_frame_rate -of default=noprint_wrappers=1:nokey=1 $inputFile',
           ).then((info) async => (await info.getOutput())!)).toString().split("\n");
           final int height = int.parse(info[0]);
           final int width = int.parse(info[1]);
-          final num duration = num.parse(info[2]);
+          final int frameRate = (num.parse(info[2].split("/")[0]) / num.parse(info[2].split("/")[1])).round();
+          final num duration = num.parse(info[4]);
 
           final num target = size * 1024 * 1024;
           final num totalBitrate = target / duration;
@@ -45,6 +46,7 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
             "-ar 44100",
             "-color_trc iec61966-2-1",
             "-bitrate_mode 1",
+            "-g ${frameRate * 10}",
           ];
 
           if (max(width, height) > 1280) {
