@@ -9,10 +9,10 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
   String encoding;
 
   if (Platform.isAndroid) {
-    encoding = 'h264_mediacodec';
+    encoding = 'hevc_mediacodec';
     logMessage('Using hardware encoding (Android MediaCodec)\n');
   } else if (Platform.isIOS || Platform.isMacOS) {
-    encoding = 'h264_videotoolbox';
+    encoding = 'hevc_videotoolbox';
     logMessage('Using hardware encoding (VideoToolbox)\n');
   } else {
     encoding = 'mpeg4';
@@ -44,7 +44,6 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
             "-c:v $encoding",
             "-c:a aac",
             "-ar 44100",
-            "-color_trc iec61966-2-1",
             "-bitrate_mode 1",
             "-g ${frameRate * 10}",
             "-r ${min(frameRate, 60)}",
