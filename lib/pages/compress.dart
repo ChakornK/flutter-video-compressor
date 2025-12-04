@@ -14,6 +14,8 @@ class _CompressPageState extends State<CompressPage> {
 
   num targetSize = 8;
 
+  final ScrollController _controller = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,6 +44,7 @@ class _CompressPageState extends State<CompressPage> {
               child: SizedBox(
                 width: double.maxFinite,
                 child: SingleChildScrollView(
+                  controller: _controller,
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 80.0),
                     child: Column(
@@ -67,6 +70,7 @@ class _CompressPageState extends State<CompressPage> {
               } else {
                 log[log.length - 1] += value;
               }
+              _controller.animateTo(_controller.position.maxScrollExtent, duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
             }),
           );
         },
