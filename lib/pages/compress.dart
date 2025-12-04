@@ -47,16 +47,7 @@ class _CompressPageState extends State<CompressPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: log
-                          .map(
-                            (ln) => ln.trim().isEmpty
-                                ? const Divider()
-                                : InkWell(
-                                    onTap: () {},
-                                    child: Text(ln, style: TextStyle(fontFamily: "monospace")),
-                                  ),
-                          )
-                          .toList(),
+                      children: log.map((ln) => ln.trim().isEmpty ? const Divider() : Text(ln, style: TextStyle(fontFamily: "monospace"))).toList(),
                     ),
                   ),
                 ),
