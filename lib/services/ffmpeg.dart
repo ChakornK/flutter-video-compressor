@@ -47,6 +47,7 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
             "-color_trc iec61966-2-1",
             "-bitrate_mode 1",
             "-g ${frameRate * 10}",
+            "-threads ${Platform.numberOfProcessors}",
           ];
 
           if (max(width, height) > 1280) {
