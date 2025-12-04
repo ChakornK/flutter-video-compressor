@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:video_compressor/pages/compress.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,23 +10,35 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  File? file;
+  String? inputFile;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(
-          child: FilledButton.icon(
-            onPressed: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.video);
-            },
-            label: const Text('Select file'),
-            icon: const Icon(Icons.add),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Video Compressor')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: FilledButton.icon(
+              onPressed: () {
+                FilePicker.platform.pickFiles(type: FileType.video).then((result) {
+                  if (result != null) {
+                    setState(() {
+                      inputFile = result.files.single.path!;
+                    });
+                    if (context.mounted) {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => CompressPage(inputFile: inputFile!)));
+                    }
+                  }
+                });
+              },
+              label: const Text('Select file'),
+              icon: const Icon(Icons.add),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

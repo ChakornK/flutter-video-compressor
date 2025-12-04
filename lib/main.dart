@@ -26,10 +26,7 @@ class MainApp extends StatelessWidget {
           title: 'Video Compressor',
           theme: ThemeData(colorScheme: lightDynamic ?? _defaultLightColorScheme, splashFactory: InkSparkle.splashFactory),
           darkTheme: ThemeData(colorScheme: darkDynamic ?? _defaultDarkColorScheme, splashFactory: InkSparkle.splashFactory),
-          home: Scaffold(
-            appBar: AppBar(title: const Text('Video Compressor')),
-            body: HomePage(),
-          ),
+          home: HomePage(),
           debugShowCheckedModeBanner: false,
         );
       },
