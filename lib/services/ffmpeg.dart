@@ -9,13 +9,13 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
   String encoding;
 
   if (Platform.isAndroid) {
-    encoding = 'hevc_mediacodec';
+    encoding = 'h264_mediacodec';
     logMessage('Using hardware encoding (Android MediaCodec)\n');
   } else if (Platform.isIOS || Platform.isMacOS) {
-    encoding = 'hevc_videotoolbox';
+    encoding = 'h264_videotoolbox';
     logMessage('Using hardware encoding (VideoToolbox)\n');
   } else {
-    encoding = 'libx265';
+    encoding = 'mpeg4';
     logMessage('Using software encoding\n');
   }
   logMessage("\n");
@@ -26,8 +26,8 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
           final List<String> info = (await FFprobeKit.getMediaInformationFromCommand(
             '-v error -show_entries format=duration:stream=width,height -of default=noprint_wrappers=1:nokey=1 $inputFile',
           ).then((info) async => (await info.getOutput())!)).toString().split("\n");
-          final int width = int.parse(info[0]);
-          final int height = int.parse(info[1]);
+          final int height = int.parse(info[0]);
+          final int width = int.parse(info[1]);
           final num duration = num.parse(info[2]);
 
           final num target = size * 1024 * 1024;
@@ -36,15 +36,15 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
           final num videoBitrate = totalBitrate - audioBitrate;
 
           final args = [
-            "-b:v $videoBitrate",
-            "-maxrate:v $videoBitrate",
+            "-b:v ${videoBitrate.floor()}",
+            "-maxrate:v ${videoBitrate.floor()}",
             "-bufsize:v ${target / 20}",
-            "-b:a $audioBitrate",
+            "-b:a ${audioBitrate.floor()}",
             "-c:v $encoding",
             "-c:a aac",
-            "-crf 50",
             "-ar 44100",
             "-color_trc iec61966-2-1",
+            "-bitrate_mode 1",
           ];
 
           if (max(width, height) > 1280) {
