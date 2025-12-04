@@ -24,18 +24,16 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
       .then((uri) {
         FFmpegKitConfig.getSafParameterForWrite(uri!).then((safUrl) async {
           final List<String> info = (await FFprobeKit.getMediaInformationFromCommand(
-            '-v error -show_entries format=duration:stream=width,height,r_frame_rate -of default=noprint_wrappers=1:nokey=1 $inputFile',
+            '-v error -show_entries format=duration:stream=width,height -of default=noprint_wrappers=1:nokey=1 $inputFile',
           ).then((info) async => (await info.getOutput())!)).toString().split("\n");
           final int width = int.parse(info[0]);
           final int height = int.parse(info[1]);
-          final int frameRate = (num.parse(info[2].split("/")[0]) / num.parse(info[2].split("/")[1])).round();
-          final num duration = num.parse(info[3].contains("/") ? info[4] : info[3]);
+          final num duration = num.parse(info[2]);
 
           final num target = size * 1024 * 1024;
           final num totalBitrate = target / duration * 8;
           final num audioBitrate = min(96 * 1000, 0.2 * totalBitrate);
           final num videoBitrate = totalBitrate - audioBitrate;
-          final num targetFrameRate = min(frameRate, 30);
 
           final args = [
             "-b:v $videoBitrate",
@@ -46,8 +44,6 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
             "-c:a aac",
             "-ar 44100",
             "-bitrate_mode 1",
-            "-g ${targetFrameRate * 10}",
-            "-r $frameRate",
             "-threads ${Platform.numberOfProcessors}",
           ];
 
