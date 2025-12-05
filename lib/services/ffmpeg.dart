@@ -3,12 +3,22 @@ import 'dart:math';
 
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit_config.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
 
-void compressVideo({required String inputFile, required num targetSize, required num targetDimension, required Function(String) logMessage}) {
+void compressVideo({
+  required String inputFile,
+  required num targetSize,
+  required num targetDimension,
+  required Function(String) logMessage,
+  required Function(bool) onStateChange,
+  required Function(FFmpegSession) setSession,
+}) {
   final num targetDim = targetDimension - (targetDimension % 2);
 
   String encoding;
+
+  onStateChange(true);
 
   if (Platform.isAndroid) {
     encoding = 'h264_mediacodec';
@@ -64,10 +74,11 @@ void compressVideo({required String inputFile, required num targetSize, required
             }
           }
 
-          FFmpegKit.executeAsync(
+          final session = await FFmpegKit.executeAsync(
             "-i $inputFile ${args.join(" ")} $safUrl",
             (s) {
               logMessage("Finished\n");
+              onStateChange(false);
             },
             (e) {
               final msg = e.getMessage();
@@ -77,6 +88,7 @@ void compressVideo({required String inputFile, required num targetSize, required
             },
             (c) => logMessage(c.toString().replaceFirst(RegExp(r"Instance of '.+?'"), '')),
           );
+          setSession(session);
         });
       })
       .catchError((_) {});

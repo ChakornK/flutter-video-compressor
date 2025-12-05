@@ -1,3 +1,4 @@
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
 import 'package:flutter/material.dart';
 import 'package:video_compressor/services/ffmpeg.dart';
 
@@ -11,6 +12,8 @@ class CompressPage extends StatefulWidget {
 
 class _CompressPageState extends State<CompressPage> {
   List<String> log = [];
+  bool isRunning = false;
+  FFmpegSession? session;
 
   num targetSize = 8;
   num targetDimension = 1280;
@@ -94,25 +97,37 @@ class _CompressPageState extends State<CompressPage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          compressVideo(
-            inputFile: widget.inputFile,
-            targetSize: targetSize,
-            targetDimension: targetDimension,
-            logMessage: (String value) => setState(() {
-              if (value.contains("\n")) {
-                log.add(value.replaceFirst(RegExp(r'\n$'), ''));
-              } else {
-                log[log.length - 1] += value;
-              }
-              _controller.animateTo(_controller.position.maxScrollExtent, duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-            }),
-          );
-        },
-        icon: const Icon(Icons.rocket_launch_rounded),
-        label: const Text("Compress"),
-      ),
+      floatingActionButton: isRunning
+          ? FloatingActionButton.extended(onPressed: () => session?.cancel(), icon: const Icon(Icons.stop), label: const Text("Cancel"))
+          : FloatingActionButton.extended(
+              onPressed: () {
+                try {
+                  compressVideo(
+                    inputFile: widget.inputFile,
+                    targetSize: targetSize,
+                    targetDimension: targetDimension,
+                    logMessage: (String value) => setState(() {
+                      if (value.contains("\n")) {
+                        log.add(value.replaceFirst(RegExp(r'\n$'), ''));
+                      } else {
+                        log[log.length - 1] += value;
+                      }
+                      _controller.animateTo(_controller.position.maxScrollExtent, duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+                    }),
+                    onStateChange: (bool value) => setState(() => isRunning = value),
+                    setSession: (FFmpegSession value) => setState(() => session = value),
+                  );
+                } catch (e) {
+                  setState(() {
+                    isRunning = false;
+                    session = null;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Something went wrong")));
+                }
+              },
+              icon: const Icon(Icons.rocket_launch_rounded),
+              label: const Text("Compress"),
+            ),
     );
   }
 }
