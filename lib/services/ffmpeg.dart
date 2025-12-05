@@ -34,18 +34,18 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
 
           final num target = size * 1024 * 1024;
           final num totalBitrate = target / duration * 8;
-          final num audioBitrate = min(96 * 1000, 0.2 * totalBitrate);
+          final num audioBitrate = min(64 * 1000, 0.2 * totalBitrate);
           final num videoBitrate = totalBitrate - audioBitrate;
 
           final args = [
             "-b:v $videoBitrate",
             "-maxrate:v $videoBitrate",
-            "-bufsize:v ${target / 2}",
             "-b:a $audioBitrate",
+            "-maxrate:a $audioBitrate",
             "-c:v $encoding",
             "-c:a aac",
             "-ar 44100",
-            "-bitrate_mode 1",
+            "-bitrate_mode 2",
             "-threads ${Platform.numberOfProcessors}",
           ];
 
