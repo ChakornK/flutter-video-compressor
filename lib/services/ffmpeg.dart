@@ -24,11 +24,13 @@ void compressVideo(String inputFile, num size, Function(String) logMessage) {
       .then((uri) {
         FFmpegKitConfig.getSafParameterForWrite(uri!).then((safUrl) async {
           final List<String> info = (await FFprobeKit.getMediaInformationFromCommand(
-            '-v error -show_entries format=duration:stream=width,height -of default=noprint_wrappers=1:nokey=1 $inputFile',
+            '-v error -select_streams v:0 -show_entries format=duration:stream=width,height:side_data=rotation -read_intervals 0%+#1 -of default=noprint_wrappers=1 $inputFile',
           ).then((info) async => (await info.getOutput())!)).toString().split("\n");
-          final int width = int.parse(info[0]);
-          final int height = int.parse(info[1]);
-          final num duration = num.parse(info[2]);
+          final int rotation = int.parse(info.firstWhere((x) => x.startsWith("rotation=")).split("=")[1]);
+          final bool isLandscape = (rotation % 180).abs() != 0;
+          final int width = int.parse(info.firstWhere((x) => x.startsWith(isLandscape ? "height=" : "width=")).split("=")[1]);
+          final int height = int.parse(info.firstWhere((x) => x.startsWith(isLandscape ? "width=" : "height=")).split("=")[1]);
+          final num duration = num.parse(info.firstWhere((x) => x.startsWith("duration=")).split("=")[1]);
 
           final num target = size * 1024 * 1024;
           final num totalBitrate = target / duration * 8;
