@@ -98,7 +98,16 @@ class _CompressPageState extends State<CompressPage> {
         ),
       ),
       floatingActionButton: isRunning
-          ? FloatingActionButton.extended(onPressed: () => session?.cancel(), icon: const Icon(Icons.stop), label: const Text("Cancel"))
+          ? FloatingActionButton.extended(
+              onPressed: () => session?.cancel().then(
+                (_) => setState(() {
+                  isRunning = false;
+                  session = null;
+                }),
+              ),
+              icon: const Icon(Icons.stop),
+              label: const Text("Cancel"),
+            )
           : FloatingActionButton.extended(
               onPressed: () {
                 try {
